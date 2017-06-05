@@ -8,7 +8,7 @@ here = path.abspath(path.dirname(__file__))
 
 setup(
     name='nanomath',
-    version='0.9.0',
+    version='0.9.1',
     description='A few simple math function for other Oxford Nanopore processing scripts',
     long_description='A few simple math function for other Oxford Nanopore processing scripts.',
     url='https://github.com/wdecoster/nanomath',
