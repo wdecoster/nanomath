@@ -5,10 +5,11 @@ from codecs import open
 from os import path
 
 here = path.abspath(path.dirname(__file__))
+exec(open('nanomath/version.py').read())
 
 setup(
     name='nanomath',
-    version='0.9.1',
+    version=__version__,
     description='A few simple math function for other Oxford Nanopore processing scripts',
     long_description='A few simple math function for other Oxford Nanopore processing scripts.',
     url='https://github.com/wdecoster/nanomath',

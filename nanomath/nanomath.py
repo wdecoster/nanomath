@@ -1,8 +1,8 @@
 # wdecoster
 import numpy as np
 import pandas as pd
+from .version import __version__
 
-__version__ = 0.9.1
 
 def getN50(a):
 	'''
