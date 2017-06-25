@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 from .version import __version__
-
+import math
 
 def getN50(readlengths):
 	'''
@@ -20,8 +20,11 @@ def removeLengthOutliers(df, columnname):
 
 
 def aveQual(quals):
-	'''	Calculation function: Receive the integer quality scores of a read and return the average quality for that read'''
-	return sum(quals) / len(quals)
+	'''
+	Calculation function: Receive the integer quality scores of a read and return the average quality for that read
+	First convert Phred scores to probabilities, calculate average error probability and convert average back to Phred scale
+	'''
+	return -10*math.log(sum([10**(q/-10) for q in quals]) / len(quals), 10)
 
 
 def readstats(readlengths, qualities):
