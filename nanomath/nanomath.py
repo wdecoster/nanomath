@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from .version import __version__
 import math
+import sys
 
 def getN50(readlengths):
 	'''
@@ -40,6 +41,8 @@ def readstats(readlengths, qualities):
 	'''
 	res = dict()
 	res["NumberOfReads"] = readlengths.size
+	if res["NumberOfReads"] < 10:
+		return None
 	res["TotalBases"] = np.sum(readlengths)
 	res["MedianLength"] = np.median(readlengths)
 	res["MeanLength"] = np.mean(readlengths)
@@ -60,21 +63,24 @@ def writeStats(datadf, outputfile):
 	Call calculation function and write to file
 	'''
 	stat = readstats(np.array(datadf["lengths"]), np.array(datadf["quals"]))
-	with open(outputfile, 'wt') as output:
-		output.write("Number of reads:\t{}\n".format(stat["NumberOfReads"]))
-		output.write("Total bases:\t{}\n".format(stat["TotalBases"]))
-		output.write("Median read length:\t{}\n".format(stat["MedianLength"]))
-		output.write("Mean read length:\t{}\n".format(round(stat["MeanLength"],2)))
-		output.write("Readlength N50:\t{}\n".format(getN50(datadf["lengths"])))
-		output.write("\n")
-		output.write("Top 5 read lengths and their average basecall quality score:\n")
-		for length, qual in sorted(stat["MaxLengthsAndQ"], key=lambda x: x[0], reverse=True):
-			output.write("Length: {}bp\tQ: {}\n".format(length, round(qual, 2)))
-		output.write("\n")
-		output.write("Top 5 average basecall quality scores and their read lengths:\n")
-		for length, qual in sorted(stat["MaxQualsAndL"], key=lambda x: x[1], reverse=True):
-			output.write("Length: {}bp\tQ: {}\n".format(length, round(qual, 2)))
-		output.write("\n")
-		output.write("Number of reads and fraction above quality cutoffs:\n")
-		for q in sorted(stat["QualGroups"].keys()):
-			output.write("Q{}:\t{}\t{}%\n".format(q, stat["QualGroups"][q][0], round(100*stat["QualGroups"][q][1],2)))
+	if stat:
+		with open(outputfile, 'wt') as output:
+			output.write("Number of reads:\t{}\n".format(stat["NumberOfReads"]))
+			output.write("Total bases:\t{}\n".format(stat["TotalBases"]))
+			output.write("Median read length:\t{}\n".format(stat["MedianLength"]))
+			output.write("Mean read length:\t{}\n".format(round(stat["MeanLength"],2)))
+			output.write("Readlength N50:\t{}\n".format(getN50(datadf["lengths"])))
+			output.write("\n")
+			output.write("Top 5 read lengths and their average basecall quality score:\n")
+			for length, qual in sorted(stat["MaxLengthsAndQ"], key=lambda x: x[0], reverse=True):
+				output.write("Length: {}bp\tQ: {}\n".format(length, round(qual, 2)))
+			output.write("\n")
+			output.write("Top 5 average basecall quality scores and their read lengths:\n")
+			for length, qual in sorted(stat["MaxQualsAndL"], key=lambda x: x[1], reverse=True):
+				output.write("Length: {}bp\tQ: {}\n".format(length, round(qual, 2)))
+			output.write("\n")
+			output.write("Number of reads and fraction above quality cutoffs:\n")
+			for q in sorted(stat["QualGroups"].keys()):
+				output.write("Q{}:\t{}\t{}%\n".format(q, stat["QualGroups"][q][0], round(100*stat["QualGroups"][q][1],2)))
+	else:
+		sys.stderr.write("Number of reads too low for meaningful statistics.\n")
