@@ -28,7 +28,7 @@ def aveQual(quals):
 	return -10*math.log(sum([10**(q/-10) for q in quals]) / len(quals), 10)
 
 
-def readstats(readlengths, qualities, channels):
+def readstats(datadf):
 	'''
 	For an array of readlengths, return a dictionary containing:
 	- the number of reads
@@ -40,7 +40,14 @@ def readstats(readlengths, qualities, channels):
 	- the fraction and number of reads above > Qx (use a set of cutoffs depending on the observed quality scores)
 	- the number of active channels
 	'''
+	readlengths = np.array(datadf["lengths"])
+	qualities = np.array(datadf["quals"])
+
 	res = dict()
+	if "runIDs" in datadf:
+		res["runIDs"] = list(np.unique(datadf["runIDs"]))
+	if "channelIDs" in datadf:
+		res["ActiveChannels"] = np.unique(datadf["channelIDs"]).size
 	res["NumberOfReads"] = readlengths.size
 	if res["NumberOfReads"] < 10:
 		return None
@@ -56,7 +63,6 @@ def readstats(readlengths, qualities, channels):
 	for q in qualgroups:
 		numberAboveQ = np.sum(qualities > q)
 		res["QualGroups"][q] = (numberAboveQ, numberAboveQ / res["NumberOfReads"])
-	res["ActiveChannels"] = np.unique(channels).size
 	return res
 
 
@@ -64,7 +70,7 @@ def writeStats(datadf, outputfile):
 	'''
 	Call calculation function and write to file
 	'''
-	stat = readstats(np.array(datadf["lengths"]), np.array(datadf["quals"]), np.array(datadf["channelIDs"]))
+	stat = readstats(datadf)
 	if stat:
 		with open(outputfile, 'wt') as output:
 			output.write("Number of reads:\t{}\n".format(stat["NumberOfReads"]))
@@ -84,6 +90,9 @@ def writeStats(datadf, outputfile):
 			output.write("Number of reads and fraction above quality cutoffs:\n")
 			for q in sorted(stat["QualGroups"].keys()):
 				output.write("Q{}:\t{}\t{}%\n".format(q, stat["QualGroups"][q][0], round(100*stat["QualGroups"][q][1],2)))
-			output.write("\nData produced using {} active channels.".format(stat["ActiveChannels"]))
+			if "ActiveChannels" in stat:
+				output.write("\nData produced using {} active channels.\n".format(stat["ActiveChannels"]))
+			if "runIDs" in stat:
+				output.write("\nData was produced in run(s) with ID:\n{}".format("\n".join(stat["runIDs"])))
 	else:
 		sys.stderr.write("Number of reads too low for meaningful statistics.\n")
