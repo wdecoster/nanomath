@@ -15,7 +15,7 @@ This module provides a few simple math and statistics functions for other script
 pip install nanomath
 ```
 or  
-![install with conda](https://anaconda.org/bioconda/nanomath/badges/installer/conda.svg)
+[![install with conda](https://anaconda.org/bioconda/nanomath/badges/installer/conda.svg)](https://anaconda.org/bioconda/nanomath)
 ```
 conda install -c bioconda nanomath
 ```
