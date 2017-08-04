@@ -19,3 +19,6 @@ or
 ```
 conda install -c bioconda nanomath
 ```
+
+## STATUS
+[![Build Status](https://travis-ci.org/wdecoster/nanomath.svg?branch=master)](https://travis-ci.org/wdecoster/nanomath)
