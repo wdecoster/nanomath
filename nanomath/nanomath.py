@@ -87,7 +87,7 @@ def writeStats(datadf, outputfile):
             output.write("Total bases:\t{}\n".format(stat["TotalBases"]))
             output.write("Median read length:\t{}\n".format(stat["MedianLength"]))
             output.write("Mean read length:\t{}\n".format(round(stat["MeanLength"], 2)))
-            output.write("Readlength N50:\t{}\n".format(getN50(datadf["lengths"])))
+            output.write("Readlength N50:\t{}\n".format(getN50(np.sort(datadf["lengths"]))))
             output.write("\n")
             output.write("Top 5 read lengths and their average basecall quality score:\n")
             for length, qual in sorted(stat["MaxLengthsAndQ"], key=lambda x: x[0], reverse=True):
