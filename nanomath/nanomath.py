@@ -108,7 +108,7 @@ def writeStats(datadf, outputfile):
             output.write("\nData produced using {} active channels.\n".format(
                 stat["ActiveChannels"]))
         if "runIDs" in stat:
-            output.write("\nData was produced in run(s) with ID:\n{}".format(
+            output.write("\nData was produced in run(s) with ID:\n{}\n".format(
                 "\n".join(stat["runIDs"])))
     else:
         sys.stderr.write("Number of reads too low for meaningful statistics.\n")
