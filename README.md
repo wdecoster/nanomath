@@ -8,11 +8,11 @@ This module provides a few simple math and statistics functions for other script
 
 
 ## FUNCTIONS
-* Calculate read N50 from a set of lengths `getN50(readlenghts)`  
-* Remove extreme length outliers from a dataset `removeLengthOutliers(dataframe, columname)`  
-* Calculate the average Phred quality of a read `aveQual(qualscores)`  
-* Write out the statistics report after calling readstats function `writeStats(dataframe, outputname)`  
-* Compute a number of statistics, return a dictionary `readstats(dataframe)`  
+* Calculate read N50 from a set of lengths `get_N50(readlenghts)`  
+* Remove extreme length outliers from a dataset `remove_length_outliers(dataframe, columname)`  
+* Calculate the average Phred quality of a read `ave_qual(qualscores)`  
+* Write out the statistics report after calling readstats function `write_stats(dataframe, outputname)`  
+* Compute a number of statistics, return a dictionary `calc_read_stats(dataframe)`  
 
 
 ## INSTALLATION
