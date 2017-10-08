@@ -1,10 +1,30 @@
 # wdecoster
+'''
+This module provides a few simple math and statistics functions
+for other scripts processing Oxford Nanopore sequencing data
+
+
+
+
+## FUNCTIONS
+* Calculate read N50 from a set of lengths
+get_N50(readlenghts)
+* Remove extreme length outliers from a dataset
+remove_length_outliers(dataframe, columname)
+* Calculate the average Phred quality of a read
+ave_qual(qualscores)
+* Write out the statistics report after calling readstats function
+write_stats(dataframe, outputname)
+* Compute a number of statistics, return a dictionary
+calc_read_stats(dataframe)
+'''
+
 import numpy as np
-import math
+from math import log
 import sys
 
 
-def getN50(readlengths):
+def get_N50(readlengths):
     '''
     Get read N50.
     Based on https://github.com/PapenfussLab/Mungo/blob/master/bin/fasta_stats.py
@@ -12,14 +32,14 @@ def getN50(readlengths):
     return readlengths[np.where(np.cumsum(readlengths) >= 0.5 * np.sum(readlengths))[0][0]]
 
 
-def removeLengthOutliers(df, columnname):
+def remove_length_outliers(df, columnname):
     '''
     Remove records with length-outliers above 3 standard deviations from the median
     '''
     return df[df[columnname] < (np.median(df[columnname]) + 3 * np.std(df[columnname]))]
 
 
-def aveQual(quals):
+def ave_qual(quals):
     '''
     Calculation function:
     Receive the integer quality scores of a read and return the average quality for that read
@@ -27,10 +47,10 @@ def aveQual(quals):
     calculate average error probability
     convert average back to Phred scale
     '''
-    return -10 * math.log(sum([10**(q / -10) for q in quals]) / len(quals), 10)
+    return -10 * log(sum([10**(q / -10) for q in quals]) / len(quals), 10)
 
 
-def readstats(datadf):
+def calc_read_stats(datadf):
     '''
     For an array of readlengths, return a dictionary containing:
     - the number of reads
@@ -75,11 +95,11 @@ def readstats(datadf):
     return res
 
 
-def writeStats(datadf, outputfile):
+def write_stats(datadf, outputfile):
     '''
     Call calculation function and write to file
     '''
-    stat = readstats(datadf)
+    stat = calc_read_stats(datadf)
     if stat:
         if outputfile == 'stdout':
             output = sys.stdout
@@ -112,3 +132,11 @@ def writeStats(datadf, outputfile):
                 "\n".join(stat["runIDs"])))
     else:
         sys.stderr.write("Number of reads too low for meaningful statistics.\n")
+
+
+# To ensure backwards compatilibity, for a while, keeping exposed function names duplicated:
+getN50 = get_N50
+removeLengthOutliers = remove_length_outliers
+aveQual = ave_qual
+readstats = calc_read_stats
+writeStats = write_stats
