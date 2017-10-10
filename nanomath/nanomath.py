@@ -50,6 +50,14 @@ def ave_qual(quals):
     return -10 * log(sum([10**(q / -10) for q in quals]) / len(quals), 10)
 
 
+def median_qual(quals):
+    '''
+    Calculation function:
+    Receive the integer quality scores of a read and return the median quality for that read
+    '''
+    return np.median(quals)
+
+
 def calc_read_stats(datadf):
     '''
     For an array of readlengths, return a dictionary containing:
