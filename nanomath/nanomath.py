@@ -82,6 +82,9 @@ def calc_read_stats(datadf):
     res["NumberOfReads"] = readlengths.size
     if res["NumberOfReads"] < 10:
         return None
+    if "percentIdentity" in datadf:
+        res["ave-pID"] = np.mean(datadf["percentIdentity"])
+        res["med-pID"] = np.median(datadf["percentIdentity"])
     res["TotalBases"] = np.sum(readlengths)
     res["MedianLength"] = np.median(readlengths)
     res["MeanLength"] = np.mean(readlengths)
@@ -132,6 +135,9 @@ def write_stats(datadf, outputfile):
         for q in sorted(stat["QualGroups"].keys()):
             output.write("Q{}:\t{}\t{}%\n".format(
                 q, stat["QualGroups"][q][0], round(100 * stat["QualGroups"][q][1], 2)))
+        if "ave-pID" in stat:
+            output.write("\nAverage percent identity:\t{:0.2f}\n".format(stat["ave-pID"]))
+            output.write("Median percent identity:\t{:0.2f}\n".format(stat["med-pID"]))
         if "ActiveChannels" in stat:
             output.write("\nData produced using {} active channels.\n".format(
                 stat["ActiveChannels"]))
