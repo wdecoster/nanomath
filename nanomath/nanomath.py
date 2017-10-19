@@ -116,30 +116,30 @@ def write_stats(datadf, outputfile):
             output = sys.stdout
         else:
             output = open(outputfile, 'wt')
-        output.write("Number of reads:\t{}\n".format(stat["NumberOfReads"]))
-        output.write("Total bases:\t{}\n".format(stat["TotalBases"]))
-        output.write("Median read length:\t{}\n".format(stat["MedianLength"]))
-        output.write("Mean read length:\t{}\n".format(round(stat["MeanLength"], 2)))
-        output.write("Readlength N50:\t{}\n".format(
+        output.write("Number of reads:\t{:,}\n".format(stat["NumberOfReads"]))
+        output.write("Total bases:\t{:,}\n".format(stat["TotalBases"]))
+        output.write("Median read length:\t{:,}\n".format(stat["MedianLength"]))
+        output.write("Mean read length:\t{:,}\n".format(round(stat["MeanLength"], 2)))
+        output.write("Readlength N50:\t{:,}\n".format(
             getN50(np.sort(datadf["lengths"]))))
         output.write("\n")
         output.write("Top 5 read lengths and their average basecall quality score:\n")
         for length, qual in sorted(stat["MaxLengthsAndQ"], key=lambda x: x[0], reverse=True):
-            output.write("Length: {}bp\tQ: {}\n".format(length, round(qual, 2)))
+            output.write("Length: {:,}bp\tQ: {}\n".format(length, round(qual, 2)))
         output.write("\n")
         output.write("Top 5 average basecall quality scores and their read lengths:\n")
         for length, qual in sorted(stat["MaxQualsAndL"], key=lambda x: x[1], reverse=True):
-            output.write("Length: {}bp\tQ: {}\n".format(length, round(qual, 2)))
+            output.write("Length: {:,}bp\tQ: {}\n".format(length, round(qual, 2)))
         output.write("\n")
         output.write("Number of reads and fraction above quality cutoffs:\n")
         for q in sorted(stat["QualGroups"].keys()):
-            output.write("Q{}:\t{}\t{}%\n".format(
+            output.write("Q{}:\t{:,}\t{}%\n".format(
                 q, stat["QualGroups"][q][0], round(100 * stat["QualGroups"][q][1], 2)))
         if "ave-pID" in stat:
             output.write("\nAverage percent identity:\t{:0.2f}\n".format(stat["ave-pID"]))
             output.write("Median percent identity:\t{:0.2f}\n".format(stat["med-pID"]))
         if "ActiveChannels" in stat:
-            output.write("\nData produced using {} active channels.\n".format(
+            output.write("\nData produced using {:,} active channels.\n".format(
                 stat["ActiveChannels"]))
         if "runIDs" in stat:
             output.write("\nData was produced in run(s) with ID:\n{}\n".format(
