@@ -85,6 +85,8 @@ def calc_read_stats(datadf):
     if "percentIdentity" in datadf:
         res["ave-pID"] = np.mean(datadf["percentIdentity"])
         res["med-pID"] = np.median(datadf["percentIdentity"])
+    if "aligned_lengths" in datadf:
+        res["TotalAlignedBases"] = np.sum(datadf["aligned_lengths"])
     res["TotalBases"] = np.sum(readlengths)
     res["MedianLength"] = np.median(readlengths)
     res["MeanLength"] = np.mean(readlengths)
@@ -118,6 +120,8 @@ def write_stats(datadf, outputfile):
             output = open(outputfile, 'wt')
         output.write("Number of reads:\t{:,}\n".format(stat["NumberOfReads"]))
         output.write("Total bases:\t{:,}\n".format(stat["TotalBases"]))
+        if "TotalAlignedBases" in stat:
+            output.write("Total bases aligned:\t{:,}\n".format(stat["TotalAlignedBases"]))
         output.write("Median read length:\t{:,}\n".format(stat["MedianLength"]))
         output.write("Mean read length:\t{:,}\n".format(round(stat["MeanLength"], 2)))
         output.write("Readlength N50:\t{:,}\n".format(
