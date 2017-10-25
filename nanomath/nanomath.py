@@ -72,7 +72,6 @@ def calc_read_stats(datadf):
     - the number of active channels
     '''
     readlengths = np.array(datadf["lengths"])
-    qualities = np.array(datadf["quals"])
 
     res = dict()
     if "runIDs" in datadf:
@@ -91,20 +90,22 @@ def calc_read_stats(datadf):
     res["MedianLength"] = np.median(readlengths)
     res["MeanLength"] = np.mean(readlengths)
     indices_top_L = np.argpartition(readlengths, -5)[-5:]
-    res["MaxLengthsAndQ"] = [list(e)
-                             for e in zip(
-        list(readlengths[indices_top_L]),
-        list(qualities[indices_top_L]))]
-    indices_top_Q = np.argpartition(qualities, -5)[-5:]
-    res["MaxQualsAndL"] = [list(e)
-                           for e in zip(
-        list(readlengths[indices_top_Q]),
-        list(qualities[indices_top_Q]))]
-    qualgroups = [q for q in range(5, 50, 5) if q < np.amax(qualities) + 5]
-    res["QualGroups"] = dict()
-    for q in qualgroups:
-        numberAboveQ = np.sum(qualities > q)
-        res["QualGroups"][q] = (numberAboveQ, numberAboveQ / res["NumberOfReads"])
+    if "quals" in datadf:
+        qualities = np.array(datadf["quals"])
+        res["MaxLengthsAndQ"] = [list(e)
+                                 for e in zip(
+            list(readlengths[indices_top_L]),
+            list(qualities[indices_top_L]))]
+        indices_top_Q = np.argpartition(qualities, -5)[-5:]
+        res["MaxQualsAndL"] = [list(e)
+                               for e in zip(
+            list(readlengths[indices_top_Q]),
+            list(qualities[indices_top_Q]))]
+        qualgroups = [q for q in range(5, 50, 5) if q < np.amax(qualities) + 5]
+        res["QualGroups"] = dict()
+        for q in qualgroups:
+            numberAboveQ = np.sum(qualities > q)
+            res["QualGroups"][q] = (numberAboveQ, numberAboveQ / res["NumberOfReads"])
     return res
 
 
@@ -127,18 +128,19 @@ def write_stats(datadf, outputfile):
         output.write("Readlength N50:\t{:,}\n".format(
             getN50(np.sort(datadf["lengths"]))))
         output.write("\n")
-        output.write("Top 5 read lengths and their average basecall quality score:\n")
-        for length, qual in sorted(stat["MaxLengthsAndQ"], key=lambda x: x[0], reverse=True):
-            output.write("Length: {:,}bp\tQ: {}\n".format(length, round(qual, 2)))
-        output.write("\n")
-        output.write("Top 5 average basecall quality scores and their read lengths:\n")
-        for length, qual in sorted(stat["MaxQualsAndL"], key=lambda x: x[1], reverse=True):
-            output.write("Length: {:,}bp\tQ: {}\n".format(length, round(qual, 2)))
-        output.write("\n")
-        output.write("Number of reads and fraction above quality cutoffs:\n")
-        for q in sorted(stat["QualGroups"].keys()):
-            output.write("Q{}:\t{:,}\t{}%\n".format(
-                q, stat["QualGroups"][q][0], round(100 * stat["QualGroups"][q][1], 2)))
+        if "quals" in datadf:
+            output.write("Top 5 read lengths and their average basecall quality score:\n")
+            for length, qual in sorted(stat["MaxLengthsAndQ"], key=lambda x: x[0], reverse=True):
+                output.write("Length: {:,}bp\tQ: {}\n".format(length, round(qual, 2)))
+            output.write("\n")
+            output.write("Top 5 average basecall quality scores and their read lengths:\n")
+            for length, qual in sorted(stat["MaxQualsAndL"], key=lambda x: x[1], reverse=True):
+                output.write("Length: {:,}bp\tQ: {}\n".format(length, round(qual, 2)))
+            output.write("\n")
+            output.write("Number of reads and fraction above quality cutoffs:\n")
+            for q in sorted(stat["QualGroups"].keys()):
+                output.write("Q{}:\t{:,}\t{}%\n".format(
+                    q, stat["QualGroups"][q][0], round(100 * stat["QualGroups"][q][1], 2)))
         if "ave-pID" in stat:
             output.write("\nAverage percent identity:\t{:0.2f}\n".format(stat["ave-pID"]))
             output.write("Median percent identity:\t{:0.2f}\n".format(stat["med-pID"]))
