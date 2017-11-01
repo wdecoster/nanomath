@@ -119,7 +119,7 @@ def write_stats(datadf, outputfile):
             output = sys.stdout
         else:
             output = open(outputfile, 'wt')
-        output.write("General summary:\n")
+        output.write("General summary\n")
         output.write("Number of reads:\t{:,}\n".format(stat["NumberOfReads"]))
         output.write("Total bases:\t{:,}\n".format(stat["TotalBases"]))
         if "TotalAlignedBases" in stat:
@@ -130,15 +130,15 @@ def write_stats(datadf, outputfile):
             getN50(np.sort(datadf["lengths"]))))
         output.write("\n")
         if "quals" in datadf:
-            output.write("Top 5 read lengths and their average basecall quality score:\n")
+            output.write("Top 5 read lengths and their average basecall quality score\n")
             for length, qual in sorted(stat["MaxLengthsAndQ"], key=lambda x: x[0], reverse=True):
                 output.write("Length: {:,}bp\tQ: {}\n".format(length, round(qual, 2)))
             output.write("\n")
-            output.write("Top 5 average basecall quality scores and their read lengths:\n")
+            output.write("Top 5 average basecall quality scores and their read lengths\n")
             for length, qual in sorted(stat["MaxQualsAndL"], key=lambda x: x[1], reverse=True):
                 output.write("Length: {:,}bp\tQ: {}\n".format(length, round(qual, 2)))
             output.write("\n")
-            output.write("Number of reads and fraction above quality cutoffs:\n")
+            output.write("Number of reads and fraction above quality cutoffs\n")
             for q in sorted(stat["QualGroups"].keys()):
                 output.write("Q{}:\t{:,} ({}%)\n".format(
                     q, stat["QualGroups"][q][0], round(100 * stat["QualGroups"][q][1], 2)))
