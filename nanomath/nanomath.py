@@ -140,7 +140,7 @@ def write_stats(datadf, outputfile):
             output.write("\n")
             output.write("Number of reads and fraction above quality cutoffs:\n")
             for q in sorted(stat["QualGroups"].keys()):
-                output.write("Q{}:\t{:,} ({})%\n".format(
+                output.write("Q{}:\t{:,} ({}%)\n".format(
                     q, stat["QualGroups"][q][0], round(100 * stat["QualGroups"][q][1], 2)))
         if "ave-pID" in stat:
             output.write("\nAverage percent identity:\t{:0.2f}\n".format(stat["ave-pID"]))
