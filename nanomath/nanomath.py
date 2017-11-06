@@ -47,7 +47,10 @@ def ave_qual(quals):
     calculate average error probability
     convert average back to Phred scale
     '''
-    return -10 * log(sum([10**(q / -10) for q in quals]) / len(quals), 10)
+    try:
+        return -10 * log(sum([10**(q / -10) for q in quals]) / len(quals), 10)
+    except ZeroDivisionError:
+        return None
 
 
 def median_qual(quals):
