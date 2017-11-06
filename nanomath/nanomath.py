@@ -1,5 +1,5 @@
 # wdecoster
-'''
+"""
 This module provides a few simple math and statistics functions
 for other scripts processing Oxford Nanopore sequencing data
 
@@ -17,7 +17,7 @@ ave_qual(qualscores)
 write_stats(dataframe, outputname)
 * Compute a number of statistics, return a dictionary
 calc_read_stats(dataframe)
-'''
+"""
 
 import numpy as np
 from math import log
@@ -25,28 +25,28 @@ import sys
 
 
 def get_N50(readlengths):
-    '''
-    Get read N50.
+    """Calculate read length N50.
+
     Based on https://github.com/PapenfussLab/Mungo/blob/master/bin/fasta_stats.py
-    '''
+    """
     return readlengths[np.where(np.cumsum(readlengths) >= 0.5 * np.sum(readlengths))[0][0]]
 
 
 def remove_length_outliers(df, columnname):
-    '''
-    Remove records with length-outliers above 3 standard deviations from the median
-    '''
+    """Remove records with length-outliers above 3 standard deviations from the median."""
     return df[df[columnname] < (np.median(df[columnname]) + 3 * np.std(df[columnname]))]
 
 
 def ave_qual(quals):
-    '''
-    Calculation function:
+    """Calculate average basecall quality of a read.
+
     Receive the integer quality scores of a read and return the average quality for that read
     First convert Phred scores to probabilities,
     calculate average error probability
     convert average back to Phred scale
-    '''
+
+    Return None for ZeroDivisionError
+    """
     try:
         return -10 * log(sum([10**(q / -10) for q in quals]) / len(quals), 10)
     except ZeroDivisionError:
@@ -54,16 +54,14 @@ def ave_qual(quals):
 
 
 def median_qual(quals):
-    '''
-    Calculation function:
-    Receive the integer quality scores of a read and return the median quality for that read
-    '''
+    """Receive the integer quality scores of a read and return the median quality for that read."""
     return np.median(quals)
 
 
 def calc_read_stats(datadf):
-    '''
-    For an array of readlengths, return a dictionary containing:
+    """Calculate read statistics.
+
+    For a DataFrame of reads, return a dictionary containing:
     - the number of reads
     - the total number of bases sequenced
     - the median length
@@ -73,7 +71,7 @@ def calc_read_stats(datadf):
     - the fraction and number of reads above > Qx
     (use a set of cutoffs depending on the observed quality scores)
     - the number of active channels
-    '''
+    """
     readlengths = np.array(datadf["lengths"])
 
     res = dict()
@@ -113,9 +111,7 @@ def calc_read_stats(datadf):
 
 
 def write_stats(datadf, outputfile):
-    '''
-    Call calculation function and write to file
-    '''
+    """Call calculation function and write to file."""
     stat = calc_read_stats(datadf)
     if stat:
         if outputfile == 'stdout':
