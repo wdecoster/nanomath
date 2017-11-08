@@ -9,4 +9,6 @@ python:
 # command to install dependencies
 install: "pip install nanomath"
 # command to run tests
-script: python -c "import nanomath"
+script:
+  - python -c "import nanomath"
+  - flake8 .
