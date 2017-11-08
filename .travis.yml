@@ -17,4 +17,4 @@ install:
 # command to run tests
 script:
   - python -c "import nanomath"
-  - flake8 .
+  - flake8 . --exclude=setup.py,nanomath/__init__.py
