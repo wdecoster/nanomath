@@ -28,5 +28,5 @@ setup(
     ],
     keywords='nanopore sequencing plotting quality control',
     packages=find_packages(),
-    install_requires=['pandas', 'numpy>1.8',],
+    install_requires=['pandas', 'numpy>1.8', ],
     package_dir={'nanomath': 'nanomath'})
