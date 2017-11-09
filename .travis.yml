@@ -2,19 +2,21 @@ language: python
 
 os:
   - linux
-  - osx
 
 python:
   - "3.4"
   - "3.5"
-  - "3.5-dev" # 3.5 development branch
+  - "3.5-dev"
   - "3.6"
-  - "3.6-dev" # 3.6 development branch
-# command to install dependencies
-install:
-  - pip install nanomath
+  - "3.6-dev"
+
+before_install:
+  - cp README.md README.rst
   - pip install flake8
-# command to run tests
+
+install:
+  - pip install -e .
+
 script:
   - python -c "import nanomath"
   - flake8 . --exclude=setup.py,nanomath/__init__.py
