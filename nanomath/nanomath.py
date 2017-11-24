@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 from math import log
 import sys
+from itertools import chain
 
 
 def get_N50(readlengths):
@@ -60,16 +61,17 @@ def median_qual(quals):
 
 
 def format_nums(nums):
-    return '\t'.join(["{:,.2f}".format(n).rstrip('0').rstrip('.') for n in nums])
+    return '\t'.join(["{:>12,.2f}".format(n).rstrip('0').rstrip('.') for n in nums])
 
 
-def format_pairs(pairs, index=True):
+def format_names(names):
+    return '\t'.join(["{:>12}".format(n) for n in names])
+
+
+def format_pairs_block(pairs):
     res = ""
     for j, l in enumerate(pairs, start=1):
-        if index:
-            res += "{:>30}\t".format(str(j) + ":")
-        else:
-            res += "\t".format(j)
+        res += "{:>30}\t".format(str(j) + ":")
         for i in range(len(l)):
             if i % 2:
                 res += (" ({:,.2f})\t".format(float(l[i])))
@@ -79,8 +81,20 @@ def format_pairs(pairs, index=True):
     return res
 
 
+def format_pairs_line(pairs):
+    pairs = list(chain.from_iterable(pairs))
+    res = "\t"
+    for i in range(len(pairs)):
+        if i % 2:
+            res += (" ({:,.1f})\t".format(float(pairs[i])))
+        else:
+            res += ("{:>8,.0f}".format(float(pairs[i]))).rstrip('0').rstrip('.')
+    res += "\n"
+    return res
+
+
 def get_top_5(df, col):
-    return df.sort_values(col, ascending=False).head(5)[["lengths", "quals"]]
+    return df.sort_values(col, ascending=False).head(5)[["lengths", "quals"]].reset_index(drop=True)
 
 
 def reads_above_qual(df, qual):
@@ -98,7 +112,7 @@ def write_stats(datadfs, outputfile, names=[]):
         output = sys.stdout
     else:
         output = open(outputfile, 'wt')
-    output.write("General summary\t{}\n".format('\t'.join(names)))
+    output.write("General summary\t" + " " * 15 + "{}\n".format(format_names(names)))
     output.write("{:>30}\t{}\n".format("Number of reads:",
                                        format_nums([len(df) for df in datadfs])))
     output.write("{:>30}\t{}\n".format("Total bases:", format_nums(
@@ -121,21 +135,22 @@ def write_stats(datadfs, outputfile, names=[]):
         output.write("{:>30}\t{}\n".format("Active channels:", format_nums(
             [np.unique(df["channelIDs"]).size for df in datadfs])))
     output.write("\n")
+
     if "quals" in datadfs[0]:
         output.write("Top 5 longest reads and their mean basecall quality score\n")
         output.write("{}\n".format(
-            format_pairs([tuple(l) for l in pd.concat(
+            format_pairs_block([tuple(l) for l in pd.concat(
                 [get_top_5(df, "lengths") for df in datadfs],
                 axis=1).values])))
         output.write("Top 5 highest mean basecall quality scores and their read lengths\n")
         output.write("{}\n".format(
-            format_pairs([tuple(l) for l in pd.concat(
+            format_pairs_block([tuple(l) for l in pd.concat(
                 [get_top_5(df, "quals") for df in datadfs],
                 axis=1).values])))
         output.write("Number of reads and fraction above quality cutoffs\n")
         for q in range(5, 30, 5):
-            output.write("{:>30}{}".format("Q" + str(q) + ":", format_pairs(
-                [reads_above_qual(df, q) for df in datadfs], index=False)))
+            output.write("{:>30}{}".format("Q" + str(q) + ":", format_pairs_line(
+                [reads_above_qual(df, q) for df in datadfs])))
 
 
 # To ensure backwards compatilibity, for a while, keeping exposed function names duplicated:
