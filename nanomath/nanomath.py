@@ -81,11 +81,18 @@ def median_qual(quals):
 
 
 def get_top_5(df, col, values):
+    if "readIDs" in df:
+        values.append("readIDs")
     res = df.sort_values(col, ascending=False) \
         .head(5)[values] \
         .reset_index(drop=True) \
         .itertuples(index=False, name=None)
-    return [str(round(i, ndigits=1)) + " (" + str(round(j, ndigits=1)) + ")" for i, j in res]
+    if "readIDs" in df:
+        return [str(round(i, ndigits=1)) + " (" +
+                str(round(j, ndigits=1)) + ", [" + k + "])" for i, j, k in res]
+    else:
+        return [str(round(i, ndigits=1)) + " (" +
+                str(round(j, ndigits=1)) + ")" for i, j in res]
 
 
 def reads_above_qual(df, qual):
