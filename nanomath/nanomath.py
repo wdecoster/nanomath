@@ -70,9 +70,9 @@ def ave_qual(quals):
 
     Return None for ZeroDivisionError
     """
-    try:
+    if quals:
         return -10 * log(sum([10**(q / -10) for q in quals]) / len(quals), 10)
-    except ZeroDivisionError:
+    else:
         return None
 
 
