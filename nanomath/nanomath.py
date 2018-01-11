@@ -25,8 +25,7 @@ import sys
 
 
 class Stats(object):
-    def __init__(self, df, name):
-        self.name = name
+    def __init__(self, df):
         self.number_of_reads = len(df)
         self.number_of_bases = np.sum(df["lengths"])
         if "aligned_lengths" in df:
@@ -42,8 +41,8 @@ class Stats(object):
         if "quals" in df:
             self.mean_qual = np.mean(df["quals"])
             self.median_qual = np.median(df["quals"])
-            self.top5_lengths = get_top_5(df, "lengths")
-            self.top5_quals = get_top_5(df, "quals")
+            self.top5_lengths = get_top_5(df, "lengths", ["lengths", "quals"])
+            self.top5_quals = get_top_5(df, "quals", ["quals", "lengths"])
             self.reads_above_qual = [reads_above_qual(df, q) for q in range(5, 30, 5)]
 
 
@@ -81,24 +80,24 @@ def median_qual(quals):
     return np.median(quals)
 
 
-def get_top_5(df, col):
+def get_top_5(df, col, values):
     res = df.sort_values(col, ascending=False) \
-        .head(5)[["lengths", "quals"]] \
+        .head(5)[values] \
         .reset_index(drop=True) \
         .itertuples(index=False, name=None)
-    return [str(i) + " (" + str(j) + ")" for i, j in res]
+    return [str(round(i, ndigits=1)) + " (" + str(round(j, ndigits=1)) + ")" for i, j in res]
 
 
 def reads_above_qual(df, qual):
     numberAboveQ = np.sum(df["quals"] > qual)
-    return "{} ({})".format(numberAboveQ, 100 * (numberAboveQ / len(df.index)))
+    return "{} ({}%)".format(numberAboveQ, round(100 * (numberAboveQ / len(df.index)), ndigits=1))
 
 
 def feature_list(stats, feature, index=None):
-    if index:
-        return '\t'.join([s.__dict__[feature][index] for s in stats])
+    if index is None:
+        return '\t'.join([str(round(s.__dict__[feature], ndigits=1)) for s in stats])
     else:
-        return '\t'.join([s.__dict__[feature] for s in stats])
+        return '\t'.join([str(s.__dict__[feature][index]) for s in stats])
 
 
 def write_stats(datadfs, outputfile, names=[]):
@@ -112,9 +111,8 @@ def write_stats(datadfs, outputfile, names=[]):
     else:
         output = open(outputfile, 'wt')
 
-    stats = [Stats(df, name) for df, name in zip(datadfs, names)]
+    stats = [Stats(df) for df in datadfs]
     features = {
-        "General summary": "name",
         "Number of reads": "number_of_reads",
         "Total bases": "number_of_bases",
         "Total bases aligned": "number_of_bases_aligned",
@@ -130,15 +128,17 @@ def write_stats(datadfs, outputfile, names=[]):
     long_features = {
         "Top 5 longest reads and their mean basecall quality score": "top5_lengths",
         "Top 5 highest mean basecall quality scores and their read lengths": "top5_quals",
-        "Number of reads and fraction above quality cutoffs": "reads_above_qual",
+        "Number and percentage of reads above quality cutoffs": "reads_above_qual",
     }
+    output.write("General summary:\t {}\n".format("\t".join(names)))
     for f in features.keys():
         try:
             output.write("{}:\t{}\n".format(f, feature_list(stats, features[f])))
-        except AttributeError:
+        except KeyError:
             pass
     if all(["quals" in df for df in datadfs]):
         for lf in long_features.keys():
             output.write(lf + "\n")
             for i in range(5):
-                output.write("{}:\t{}\n".format(i + 1, feature_list(stats, features[f], index=i)))
+                output.write("{}:\t{}\n".format(
+                    i + 1, feature_list(stats, long_features[lf], index=i)))
