@@ -20,10 +20,31 @@ calc_read_stats(dataframe)
 """
 
 import numpy as np
-import pandas as pd
 from math import log
 import sys
-from itertools import chain
+
+
+class Stats(object):
+    def __init__(self, df, name):
+        self.name = name
+        self.number_of_reads = len(df)
+        self.number_of_bases = np.sum(df["lengths"])
+        if "aligned_lengths" in df:
+            self.number_of_bases_aligned = np.sum(df["aligned_lengths"])
+        self.median_read_length = np.median(df["lengths"])
+        self.mean_read_length = np.mean(df["lengths"])
+        self.n50 = get_N50(np.sort(df["lengths"]))
+        if "percentIdentity" in df:
+            self.average_identity = np.mean(df["percentIdentity"])
+            self.median_identity = np.median(df["percentIdentity"])
+        if "channelIDs" in df:
+            self.active_channels = np.unique(df["channelIDs"]).size
+        if "quals" in df:
+            self.mean_qual = np.mean(df["quals"])
+            self.median_qual = np.median(df["quals"])
+            self.top5_lengths = get_top_5(df, "lengths")
+            self.top5_quals = get_top_5(df, "quals")
+            self.reads_above_qual = [reads_above_qual(df, q) for q in range(5, 30, 5)]
 
 
 def get_N50(readlengths):
@@ -60,46 +81,24 @@ def median_qual(quals):
     return np.median(quals)
 
 
-def format_nums(nums):
-    return '\t'.join(["{:>12,.2f}".format(n).rstrip('0').rstrip('.') for n in nums])
-
-
-def format_names(names):
-    return '\t'.join(["{:>12}".format(n) for n in names])
-
-
-def format_pairs_block(pairs):
-    res = ""
-    for j, l in enumerate(pairs, start=1):
-        res += "{:>30}\t".format(str(j) + ":")
-        for i in range(len(l)):
-            if i % 2:
-                res += (" ({:,.2f})\t".format(float(l[i])))
-            else:
-                res += ("{:>8,.2f}".format(float(l[i]))).rstrip('0').rstrip('.')
-        res += "\n"
-    return res
-
-
-def format_pairs_line(pairs):
-    pairs = list(chain.from_iterable(pairs))
-    res = "\t"
-    for i in range(len(pairs)):
-        if i % 2:
-            res += (" ({:,.1f})\t".format(float(pairs[i])))
-        else:
-            res += ("{:>8,.0f}".format(float(pairs[i]))).rstrip('0').rstrip('.')
-    res += "\n"
-    return res
-
-
 def get_top_5(df, col):
-    return df.sort_values(col, ascending=False).head(5)[["lengths", "quals"]].reset_index(drop=True)
+    res = df.sort_values(col, ascending=False) \
+        .head(5)[["lengths", "quals"]] \
+        .reset_index(drop=True) \
+        .itertuples(index=False, name=None)
+    return [str(i) + " (" + str(j) + ")" for i, j in res]
 
 
 def reads_above_qual(df, qual):
     numberAboveQ = np.sum(df["quals"] > qual)
-    return numberAboveQ, 100 * (numberAboveQ / len(df.index))
+    return "{} ({})".format(numberAboveQ, 100 * (numberAboveQ / len(df.index)))
+
+
+def feature_list(stats, feature, index=None):
+    if index:
+        return '\t'.join([s.__dict__[feature][index] for s in stats])
+    else:
+        return '\t'.join([s.__dict__[feature] for s in stats])
 
 
 def write_stats(datadfs, outputfile, names=[]):
@@ -112,49 +111,34 @@ def write_stats(datadfs, outputfile, names=[]):
         output = sys.stdout
     else:
         output = open(outputfile, 'wt')
-    output.write("General summary\t" + " " * 15 + "{}\n".format(format_names(names)))
-    output.write("{:>30}\t{}\n".format("Number of reads:",
-                                       format_nums([len(df) for df in datadfs])))
-    output.write("{:>30}\t{}\n".format("Total bases:", format_nums(
-        [np.sum(df["lengths"]) for df in datadfs])))
-    if "aligned_lengths" in datadfs[0]:
-        output.write("{:>30}\t{}\n".format("Total bases aligned:", format_nums(
-            [np.sum(df["aligned_lengths"]) for df in datadfs])))
-    output.write("{:>30}\t{}\n".format("Median read length:", format_nums(
-        [np.median(df["lengths"]) for df in datadfs])))
-    output.write("{:>30}\t{}\n".format("Mean read length:", format_nums(
-        [np.mean(df["lengths"]) for df in datadfs])))
-    output.write("{:>30}\t{}\n".format("Read length N50:", format_nums(
-        [getN50(np.sort(df["lengths"])) for df in datadfs])))
-    if "percentIdentity" in datadfs[0]:
-        output.write("{:>30}\t{}\n".format("Average percent identity:", format_nums(
-            [np.mean(df["percentIdentity"]) for df in datadfs])))
-        output.write("{:>30}\t{}\n".format("Median percent identity:", format_nums(
-            [np.median(df["percentIdentity"]) for df in datadfs])))
-    if "channelIDs" in datadfs[0]:
-        output.write("{:>30}\t{}\n".format("Active channels:", format_nums(
-            [np.unique(df["channelIDs"]).size for df in datadfs])))
-    output.write("\n")
 
-    if "quals" in datadfs[0]:
-        output.write("Top 5 longest reads and their mean basecall quality score\n")
-        output.write("{}\n".format(
-            format_pairs_block([tuple(l) for l in pd.concat(
-                [get_top_5(df, "lengths") for df in datadfs],
-                axis=1).values])))
-        output.write("Top 5 highest mean basecall quality scores and their read lengths\n")
-        output.write("{}\n".format(
-            format_pairs_block([tuple(l) for l in pd.concat(
-                [get_top_5(df, "quals") for df in datadfs],
-                axis=1).values])))
-        output.write("Number of reads and fraction above quality cutoffs\n")
-        for q in range(5, 30, 5):
-            output.write("{:>30}{}".format("Q" + str(q) + ":", format_pairs_line(
-                [reads_above_qual(df, q) for df in datadfs])))
-
-
-# To ensure backwards compatilibity, for a while, keeping exposed function names duplicated:
-getN50 = get_N50
-removeLengthOutliers = remove_length_outliers
-aveQual = ave_qual
-writeStats = write_stats
+    stats = [Stats(df, name) for df, name in zip(datadfs, names)]
+    features = {
+        "General summary": "name",
+        "Number of reads": "number_of_reads",
+        "Total bases": "number_of_bases",
+        "Total bases aligned": "number_of_bases_aligned",
+        "Median read length": "median_read_length",
+        "Mean read length": "mean_read_length",
+        "Read length N50": "n50",
+        "Average percent identity": "average_identity",
+        "Median percent identity": "median_identity",
+        "Active channels": "active_channels",
+        "Mean read quality": "mean_qual",
+        "Median read quality": "median_qual",
+    }
+    long_features = {
+        "Top 5 longest reads and their mean basecall quality score": "top5_lengths",
+        "Top 5 highest mean basecall quality scores and their read lengths": "top5_quals",
+        "Number of reads and fraction above quality cutoffs": "reads_above_qual",
+    }
+    for f in features.keys():
+        try:
+            output.write("{}:\t{}\n".format(f, feature_list(stats, features[f])))
+        except AttributeError:
+            pass
+    if all(["quals" in df for df in datadfs]):
+        for lf in long_features.keys():
+            output.write(lf + "\n")
+            for i in range(5):
+                output.write("{}:\t{}\n".format(i + 1, feature_list(stats, features[f], index=i)))
