@@ -59,6 +59,10 @@ def remove_length_outliers(df, columnname):
     return df[df[columnname] < (np.median(df[columnname]) + 3 * np.std(df[columnname]))]
 
 
+def phred_to_percent(phred):
+    return 100 * (1 - 10 ** (phred / -10))
+
+
 def ave_qual(quals):
     """Calculate average basecall quality of a read.
 
