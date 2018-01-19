@@ -137,9 +137,12 @@ def write_stats(datadfs, outputfile, names=[]):
         "Median read quality": "median_qual",
     }
     long_features = {
-        "Top 5 longest reads and their mean basecall quality score": "top5_lengths",
-        "Top 5 highest mean basecall quality scores and their read lengths": "top5_quals",
-        "Number and percentage of reads above quality cutoffs": "reads_above_qual",
+        "Top 5 longest reads and their mean basecall quality score":
+        ["top5_lengths", range(1, 6)],
+        "Top 5 highest mean basecall quality scores and their read lengths":
+        ["top5_quals", range(1, 6)],
+        "Number and percentage of reads above quality cutoffs":
+        ["reads_above_qual", [">Q" + str(q) for q in range(5, 30, 5)]],
     }
     output.write("General summary:\t {}\n".format("\t".join(names)))
     for f in features.keys():
@@ -152,4 +155,4 @@ def write_stats(datadfs, outputfile, names=[]):
             output.write(lf + "\n")
             for i in range(5):
                 output.write("{}:\t{}\n".format(
-                    i + 1, feature_list(stats, long_features[lf], index=i)))
+                    long_features[lf][1][i], feature_list(stats, long_features[lf][0], index=i)))
