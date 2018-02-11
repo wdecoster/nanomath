@@ -39,11 +39,12 @@ class Stats(object):
         if "channelIDs" in df:
             self.active_channels = np.unique(df["channelIDs"]).size
         if "quals" in df:
+            self.qualgroups = [5, 7, 10, 12, 15]  # needs 5 elements in current implementation
             self.mean_qual = np.mean(df["quals"])
             self.median_qual = np.median(df["quals"])
             self.top5_lengths = get_top_5(df, "lengths", ["lengths", "quals"])
             self.top5_quals = get_top_5(df, "quals", ["quals", "lengths"])
-            self.reads_above_qual = [reads_above_qual(df, q) for q in range(5, 30, 5)]
+            self.reads_above_qual = [reads_above_qual(df, q) for q in self.qualgroups]
 
 
 def get_N50(readlengths):
@@ -142,7 +143,7 @@ def write_stats(datadfs, outputfile, names=[]):
         "Top 5 highest mean basecall quality scores and their read lengths":
         ["top5_quals", range(1, 6)],
         "Number and percentage of reads above quality cutoffs":
-        ["reads_above_qual", [">Q" + str(q) for q in range(5, 30, 5)]],
+        ["reads_above_qual", [">Q" + str(q) for q in stats[0].qualgroups]],
     }
     output.write("General summary:\t {}\n".format("\t".join(names)))
     for f in features.keys():
