@@ -137,14 +137,6 @@ def write_stats(datadfs, outputfile, names=[]):
         "Mean read quality": "mean_qual",
         "Median read quality": "median_qual",
     }
-    long_features = {
-        "Top 5 longest reads and their mean basecall quality score":
-        ["top5_lengths", range(1, 6)],
-        "Top 5 highest mean basecall quality scores and their read lengths":
-        ["top5_quals", range(1, 6)],
-        "Number and percentage of reads above quality cutoffs":
-        ["reads_above_qual", [">Q" + str(q) for q in stats[0].qualgroups]],
-    }
     output.write("General summary:\t {}\n".format("\t".join(names)))
     for f in features.keys():
         try:
@@ -152,6 +144,14 @@ def write_stats(datadfs, outputfile, names=[]):
         except KeyError:
             pass
     if all(["quals" in df for df in datadfs]):
+        long_features = {
+            "Top 5 longest reads and their mean basecall quality score":
+            ["top5_lengths", range(1, 6)],
+            "Top 5 highest mean basecall quality scores and their read lengths":
+            ["top5_quals", range(1, 6)],
+            "Number and percentage of reads above quality cutoffs":
+            ["reads_above_qual", [">Q" + str(q) for q in stats[0].qualgroups]],
+        }
         for lf in long_features.keys():
             output.write(lf + "\n")
             for i in range(5):
