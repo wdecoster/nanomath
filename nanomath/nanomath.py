@@ -138,7 +138,7 @@ def write_stats(datadfs, outputfile, names=[]):
         "Median read quality": "median_qual",
     }
     output.write("General summary:\t {}\n".format("\t".join(names)))
-    for f in features.keys():
+    for f in sorted(features.keys()):
         try:
             output.write("{}:\t{}\n".format(f, feature_list(stats, features[f])))
         except KeyError:
@@ -152,7 +152,7 @@ def write_stats(datadfs, outputfile, names=[]):
             "Number and percentage of reads above quality cutoffs":
             ["reads_above_qual", [">Q" + str(q) for q in stats[0].qualgroups]],
         }
-        for lf in long_features.keys():
+        for lf in sorted(long_features.keys()):
             output.write(lf + "\n")
             for i in range(5):
                 output.write("{}:\t{}\n".format(
