@@ -109,7 +109,9 @@ def feature_list(stats, feature, index=None):
     if index is None:
         return '\t'.join([str(round(s.__dict__[feature], ndigits=1)) for s in stats])
     else:
-        return '\t'.join([str(s.__dict__[feature][index]) for s in stats])
+        return '\t'.join([str(s.__dict__[feature][index]) if len(s.__dict__[feature]) > index
+                          else "NA"
+                          for s in stats])
 
 
 def write_stats(datadfs, outputfile, names=[]):
