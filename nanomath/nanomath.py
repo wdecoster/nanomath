@@ -42,8 +42,12 @@ class Stats(object):
             self.qualgroups = [5, 7, 10, 12, 15]  # needs 5 elements in current implementation
             self.mean_qual = np.mean(df["quals"])
             self.median_qual = np.median(df["quals"])
-            self.top5_lengths = get_top_5(df, "lengths", ["lengths", "quals"])
-            self.top5_quals = get_top_5(df, "quals", ["quals", "lengths"])
+            self.top5_lengths = get_top_5(df=df,
+                                          col="lengths",
+                                          values=["lengths", "quals"])
+            self.top5_quals = get_top_5(df=df,
+                                        col="quals",
+                                        values=["quals", "lengths"])
             self.reads_above_qual = [reads_above_qual(df, q) for q in self.qualgroups]
 
 
@@ -94,7 +98,7 @@ def get_top_5(df, col, values):
         .itertuples(index=False, name=None)
     if "readIDs" in df:
         return [str(round(i, ndigits=1)) + " (" +
-                str(round(j, ndigits=1)) + ", [" + k + "])" for i, j, k in res]
+                str(round(j, ndigits=1)) + "; " + k + ")" for i, j, k in res]
     else:
         return [str(round(i, ndigits=1)) + " (" +
                 str(round(j, ndigits=1)) + ")" for i, j in res]
@@ -102,7 +106,10 @@ def get_top_5(df, col, values):
 
 def reads_above_qual(df, qual):
     numberAboveQ = np.sum(df["quals"] > qual)
-    return "{} ({}%)".format(numberAboveQ, round(100 * (numberAboveQ / len(df.index)), ndigits=1))
+    megAboveQ = np.sum(df.loc[df["quals"] > qual, "lengths"]) / 10e6
+    return "{} ({}%) {}Mb".format(numberAboveQ,
+                                  round(100 * (numberAboveQ / len(df.index)), ndigits=1),
+                                  round(megAboveQ, ndigits=1))
 
 
 def feature_list(stats, feature, index=None):
@@ -151,7 +158,7 @@ def write_stats(datadfs, outputfile, names=[]):
             ["top5_lengths", range(1, 6)],
             "Top 5 highest mean basecall quality scores and their read lengths":
             ["top5_quals", range(1, 6)],
-            "Number and percentage of reads above quality cutoffs":
+            "Number, percentage and megabases of reads above quality cutoffs":
             ["reads_above_qual", [">Q" + str(q) for q in stats[0].qualgroups]],
         }
         for lf in sorted(long_features.keys()):
