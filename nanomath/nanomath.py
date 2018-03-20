@@ -106,7 +106,7 @@ def get_top_5(df, col, values):
 
 def reads_above_qual(df, qual):
     numberAboveQ = np.sum(df["quals"] > qual)
-    megAboveQ = np.sum(df.loc[df["quals"] > qual, "lengths"]) / 10e6
+    megAboveQ = np.sum(df.loc[df["quals"] > qual, "lengths"]) / 1e6
     return "{} ({}%) {}Mb".format(numberAboveQ,
                                   round(100 * (numberAboveQ / len(df.index)), ndigits=1),
                                   round(megAboveQ, ndigits=1))
