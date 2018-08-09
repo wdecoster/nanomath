@@ -75,8 +75,6 @@ def ave_qual(quals):
     First convert Phred scores to probabilities,
     calculate average error probability
     convert average back to Phred scale
-
-    Return None for ZeroDivisionError
     """
     if quals:
         return -10 * log(sum([10**(q / -10) for q in quals]) / len(quals), 10)
