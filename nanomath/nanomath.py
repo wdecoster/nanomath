@@ -145,9 +145,10 @@ def write_stats(datadfs, outputfile, names=[]):
         "Median read quality": "median_qual",
     }
     output.write("General summary:\t {}\n".format("\t".join(names)))
+    max_len = max([len(k) for k in features.keys()])
     for f in sorted(features.keys()):
         try:
-            output.write("{}:\t{}\n".format(f, feature_list(stats, features[f])))
+            output.write("{f:{pad}}{v}\n".format(f=f + ':', pad=max_len, v=feature_list(stats, features[f])))
         except KeyError:
             pass
     if all(["quals" in df for df in datadfs]):
