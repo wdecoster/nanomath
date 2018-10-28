@@ -27,7 +27,11 @@ conda install -c bioconda nanomath
 
 ## STATUS
 [![Build Status](https://travis-ci.org/wdecoster/nanomath.svg?branch=master)](https://travis-ci.org/wdecoster/nanomath)
-[![Code Health](https://landscape.io/github/wdecoster/nanomath/master/landscape.svg?style=flat)](https://landscape.io/github/wdecoster/nanomath/master)
+
+
+## CONTRIBUTORS
+[@alexomics](https://github.com/alexomics) for fixing the indentation of the printed stats
+
 
 ## CITATION
 If you use this tool, please consider citing our [publication](https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/bty149/4934939).

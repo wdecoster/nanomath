@@ -146,13 +146,18 @@ def write_stats(datadfs, outputfile, names=[]):
     }
     max_len = max([len(k) for k in features.keys()])
     try:
-        max_num = max(max([len(str(s.number_of_bases)) for s in stats]), max([len(str(n)) for n in names])) + 6
+        max_num = max(max([len(str(s.number_of_bases)) for s in stats]),
+                      max([len(str(n)) for n in names])) + 6
     except ValueError:
         max_num = max([len(str(s.number_of_bases)) for s in stats]) + 6
-    output.write("{:<{}}{}\n".format('General summary:', max_len, " ".join(['{:>{}}'.format(n, max_num) for n in names])))
+    output.write("{:<{}}{}\n".format('General summary:', max_len,
+                                     " ".join(['{:>{}}'.format(n, max_num) for n in names])))
     for f in sorted(features.keys()):
         try:
-            output.write("{f:{pad}}{v}\n".format(f=f + ':', pad=max_len, v=feature_list(stats, features[f], padding=max_num)))
+            output.write("{f:{pad}}{v}\n".format(
+                f=f + ':',
+                pad=max_len,
+                v=feature_list(stats, features[f], padding=max_num)))
         except KeyError:
             pass
     if all(["quals" in df for df in datadfs]):
