@@ -110,9 +110,9 @@ def reads_above_qual(df, qual):
                                   round(megAboveQ, ndigits=1))
 
 
-def feature_list(stats, feature, index=None):
+def feature_list(stats, feature, index=None, padding=15):
     if index is None:
-        return '\t'.join([str(round(s.__dict__[feature], ndigits=1)) for s in stats])
+        return ' '.join(['{:>{},.1f}'.format(s.__dict__[feature], padding) for s in stats])
     else:
         return '\t'.join([str(s.__dict__[feature][index]) if len(s.__dict__[feature]) > index
                           else "NA"
@@ -144,11 +144,15 @@ def write_stats(datadfs, outputfile, names=[]):
         "Mean read quality": "mean_qual",
         "Median read quality": "median_qual",
     }
-    output.write("General summary:\t {}\n".format("\t".join(names)))
     max_len = max([len(k) for k in features.keys()])
+    try:
+        max_num = max(max([len(str(s.number_of_bases)) for s in stats]), max([len(str(n)) for n in names])) + 6
+    except ValueError:
+        max_num = max([len(str(s.number_of_bases)) for s in stats]) + 6
+    output.write("{:<{}}{}\n".format('General summary:', max_len, " ".join(['{:>{}}'.format(n, max_num) for n in names])))
     for f in sorted(features.keys()):
         try:
-            output.write("{f:{pad}}{v}\n".format(f=f + ':', pad=max_len, v=feature_list(stats, features[f])))
+            output.write("{f:{pad}}{v}\n".format(f=f + ':', pad=max_len, v=feature_list(stats, features[f], padding=max_num)))
         except KeyError:
             pass
     if all(["quals" in df for df in datadfs]):
