@@ -67,9 +67,11 @@ def remove_length_outliers(df, columnname):
 def phred_to_percent(phred):
     return 100 * (1 - 10 ** (phred / -10))
 
+
 def errs_tab(n):
     """Generate list of error rates for qualities less than equal than n."""
     return [10**(q / -10) for q in range(n+1)]
+
 
 def ave_qual(quals, qround=False, tab=errs_tab(128)):
     """Calculate average basecall quality of a read.
