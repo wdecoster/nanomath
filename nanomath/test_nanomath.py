@@ -1,8 +1,6 @@
 import unittest
 import nanomath as nm
 
-from wub.util import seq
-
 class NanomathTest(unittest.TestCase):
     def test_ave_qual(self):
         """Test average quality calculation."""
