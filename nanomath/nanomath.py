@@ -71,7 +71,7 @@ def errs_tab(n):
     """Generate list of error rates for qualities less than equal than n."""
     return [10**(q / -10) for q in range(n+1)]
 
-def ave_qual(quals, tab=errs_tab(128)):
+def ave_qual(quals, qround=False, tab=errs_tab(128)):
     """Calculate average basecall quality of a read.
 
     Receive the integer quality scores of a read and return the average quality for that read
@@ -80,7 +80,11 @@ def ave_qual(quals, tab=errs_tab(128)):
     convert average back to Phred scale
     """
     if quals:
-        return -10 * log(sum([tab[q] for q in quals]) / len(quals), 10)
+        mq = -10 * log(sum([tab[q] for q in quals]) / len(quals), 10)
+        if qround:
+            return round(mq)
+        else:
+            return mq
     else:
         return None
 
