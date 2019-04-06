@@ -11,7 +11,7 @@ setup(
     name='nanomath',
     version=__version__,
     description='A few simple math function for other Oxford Nanopore processing scripts',
-    long_description=open(path.join(here, "README.rst")).read(),
+    long_description=open(path.join(here, "README.md")).read(),
     url='https://github.com/wdecoster/nanomath',
     author='Wouter De Coster',
     author_email='decosterwouter@gmail.com',
