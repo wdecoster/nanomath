@@ -30,4 +30,5 @@ setup(
     packages=find_packages(),
     python_requires='>=3',
     install_requires=['pandas', 'numpy>1.8', ],
-    package_dir={'nanomath': 'nanomath'})
+    package_dir={'nanomath': 'nanomath'},
+    data_files=[("", ["LICENSE"])])
