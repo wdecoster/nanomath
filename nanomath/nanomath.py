@@ -28,6 +28,7 @@ class Stats(object):
     def __init__(self, df):
         self.number_of_reads = len(df)
         self.number_of_bases = np.sum(df["lengths"])
+        self.with_readIDs = "readIDs" in df
         if "aligned_lengths" in df:
             self.number_of_bases_aligned = np.sum(df["aligned_lengths"])
         self.median_read_length = np.median(df["lengths"])
@@ -50,6 +51,29 @@ class Stats(object):
                                         values=["quals", "lengths"])
             self.reads_above_qual = [reads_above_qual(df, q) for q in self.qualgroups]
 
+    def long_features_as_string(self):
+        self.top5_lengths = self.long_feature_as_string_top5(self.top5_lengths)
+        self.top5_quals = self.long_feature_as_string_top5(self.top5_quals)
+        self.reads_above_qual = self.long_feature_as_string_above_qual(self.reads_above_qual)
+
+    def long_feature_as_string_top5(self, field):
+        if self.with_readIDs:
+            return [str(round(i, ndigits=1)) + " (" +
+                    str(round(j, ndigits=1)) + "; " + k + ")" for i, j, k in field]
+        else:
+            return [str(round(i, ndigits=1)) + " (" +
+                    str(round(j, ndigits=1)) + ")" for i, j in field]
+
+    def long_feature_as_string_above_qual(self, field):
+        return [self.format_above_qual_line(entry) for entry in field]
+
+    def format_above_qual_line(self, entry):
+        numberAboveQ, megAboveQ = entry
+        return "{} ({}%) {}Mb".format(numberAboveQ,
+                                      round(100 * (numberAboveQ / self.number_of_reads),
+                                            ndigits=1),
+                                      round(megAboveQ, ndigits=1))
+
 
 def get_N50(readlengths):
     """Calculate read length N50.
@@ -62,10 +86,6 @@ def get_N50(readlengths):
 def remove_length_outliers(df, columnname):
     """Remove records with length-outliers above 3 standard deviations from the median."""
     return df[df[columnname] < (np.median(df[columnname]) + 3 * np.std(df[columnname]))]
-
-
-def phred_to_percent(phred):
-    return 100 * (1 - 10 ** (phred / -10))
 
 
 def errs_tab(n):
@@ -91,32 +111,19 @@ def ave_qual(quals, qround=False, tab=errs_tab(128)):
         return None
 
 
-def median_qual(quals):
-    """Receive the integer quality scores of a read and return the median quality for that read."""
-    return np.median(quals)
-
-
 def get_top_5(df, col, values):
     if "readIDs" in df:
         values.append("readIDs")
-    res = df.sort_values(col, ascending=False) \
+    return df.sort_values(col, ascending=False) \
         .head(5)[values] \
         .reset_index(drop=True) \
         .itertuples(index=False, name=None)
-    if "readIDs" in df:
-        return [str(round(i, ndigits=1)) + " (" +
-                str(round(j, ndigits=1)) + "; " + k + ")" for i, j, k in res]
-    else:
-        return [str(round(i, ndigits=1)) + " (" +
-                str(round(j, ndigits=1)) + ")" for i, j in res]
 
 
 def reads_above_qual(df, qual):
     numberAboveQ = np.sum(df["quals"] > qual)
     megAboveQ = np.sum(df.loc[df["quals"] > qual, "lengths"]) / 1e6
-    return "{} ({}%) {}Mb".format(numberAboveQ,
-                                  round(100 * (numberAboveQ / len(df.index)), ndigits=1),
-                                  round(megAboveQ, ndigits=1))
+    return numberAboveQ, megAboveQ
 
 
 def feature_list(stats, feature, index=None, padding=15):
@@ -128,7 +135,7 @@ def feature_list(stats, feature, index=None, padding=15):
                           for s in stats])
 
 
-def write_stats(datadfs, outputfile, names=[]):
+def write_stats(datadfs, outputfile, names=[], as_tsv=False):
     """Call calculation functions and write stats file.
 
     This function takes a list of DataFrames,
@@ -140,46 +147,54 @@ def write_stats(datadfs, outputfile, names=[]):
         output = open(outputfile, 'wt')
 
     stats = [Stats(df) for df in datadfs]
-    features = {
-        "Number of reads": "number_of_reads",
-        "Total bases": "number_of_bases",
-        "Total bases aligned": "number_of_bases_aligned",
-        "Median read length": "median_read_length",
-        "Mean read length": "mean_read_length",
-        "Read length N50": "n50",
-        "Average percent identity": "average_identity",
-        "Median percent identity": "median_identity",
-        "Active channels": "active_channels",
-        "Mean read quality": "mean_qual",
-        "Median read quality": "median_qual",
-    }
-    max_len = max([len(k) for k in features.keys()])
-    try:
-        max_num = max(max([len(str(s.number_of_bases)) for s in stats]),
-                      max([len(str(n)) for n in names])) + 6
-    except ValueError:
-        max_num = max([len(str(s.number_of_bases)) for s in stats]) + 6
-    output.write("{:<{}}{}\n".format('General summary:', max_len,
-                                     " ".join(['{:>{}}'.format(n, max_num) for n in names])))
-    for f in sorted(features.keys()):
-        try:
-            output.write("{f:{pad}}{v}\n".format(
-                f=f + ':',
-                pad=max_len,
-                v=feature_list(stats, features[f], padding=max_num)))
-        except KeyError:
-            pass
-    if all(["quals" in df for df in datadfs]):
-        long_features = {
-            "Top 5 longest reads and their mean basecall quality score":
-            ["top5_lengths", range(1, 6)],
-            "Top 5 highest mean basecall quality scores and their read lengths":
-            ["top5_quals", range(1, 6)],
-            "Number, percentage and megabases of reads above quality cutoffs":
-            ["reads_above_qual", [">Q" + str(q) for q in stats[0].qualgroups]],
+
+    if as_tsv:
+        pass
+    else:  # 'legacy' stats report
+        features = {
+            "Number of reads": "number_of_reads",
+            "Total bases": "number_of_bases",
+            "Total bases aligned": "number_of_bases_aligned",
+            "Median read length": "median_read_length",
+            "Mean read length": "mean_read_length",
+            "Read length N50": "n50",
+            "Average percent identity": "average_identity",
+            "Median percent identity": "median_identity",
+            "Active channels": "active_channels",
+            "Mean read quality": "mean_qual",
+            "Median read quality": "median_qual",
         }
-        for lf in sorted(long_features.keys()):
-            output.write(lf + "\n")
-            for i in range(5):
-                output.write("{}:\t{}\n".format(
-                    long_features[lf][1][i], feature_list(stats, long_features[lf][0], index=i)))
+        max_len = max([len(k) for k in features.keys()])
+        try:
+            max_num = max(max([len(str(s.number_of_bases)) for s in stats]),
+                          max([len(str(n)) for n in names])) + 6
+        except ValueError:
+            max_num = max([len(str(s.number_of_bases)) for s in stats]) + 6
+        output.write("{:<{}}{}\n".format('General summary:', max_len,
+                                         " ".join(['{:>{}}'.format(n, max_num) for n in names])))
+        for f in sorted(features.keys()):
+            try:
+                output.write("{f:{pad}}{v}\n".format(
+                    f=f + ':',
+                    pad=max_len,
+                    v=feature_list(stats, features[f], padding=max_num)))
+            except KeyError:
+                pass
+        if all(["quals" in df for df in datadfs]):
+            for s in stats:
+                s.long_features_as_string()
+            long_features = {
+                "Top 5 longest reads and their mean basecall quality score":
+                ["top5_lengths", range(1, 6)],
+                "Top 5 highest mean basecall quality scores and their read lengths":
+                ["top5_quals", range(1, 6)],
+                "Number, percentage and megabases of reads above quality cutoffs":
+                ["reads_above_qual", [">Q" + str(q) for q in stats[0].qualgroups]],
+            }
+            for lf in sorted(long_features.keys()):
+                output.write(lf + "\n")
+                for index in range(5):
+                    output.write("{}:\t{}\n".format(
+                        long_features[lf][1][index], feature_list(stats=stats,
+                                                                  feature=long_features[lf][0],
+                                                                  index=index)))
