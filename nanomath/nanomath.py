@@ -20,7 +20,6 @@ calc_read_stats(dataframe)
 """
 
 import numpy as np
-from math import log
 import sys
 
 
