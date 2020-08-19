@@ -83,9 +83,9 @@ def get_N50(readlengths):
     return readlengths[np.where(np.cumsum(readlengths) >= 0.5 * np.sum(readlengths))[0][0]]
 
 
-def remove_length_outliers(df, columnname):
-    """Remove records with length-outliers above 3 standard deviations from the median."""
-    return df[df[columnname] < (np.median(df[columnname]) + 3 * np.std(df[columnname]))]
+# def remove_length_outliers(df, columnname):
+#     """Remove records with length-outliers above 3 standard deviations from the median."""
+#     return df[df[columnname] < (np.median(df[columnname]) + 3 * np.std(df[columnname]))]
 
 
 def errs_tab(n):
