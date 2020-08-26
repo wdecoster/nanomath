@@ -11,5 +11,4 @@ class NanomathTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print('leaving this for future use, but module does not have the ave_qual function anymore')
-    # unittest.main()
+    unittest.main()
