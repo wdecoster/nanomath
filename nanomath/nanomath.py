@@ -32,6 +32,7 @@ class Stats(object):
         self._with_readIDs = "readIDs" in df
         if "aligned_lengths" in df:
             self.number_of_bases_aligned = np.sum(df["aligned_lengths"])
+            self.fraction_bases_aligned = self.number_of_bases_aligned / self.number_of_bases
         self.median_read_length = np.median(df["lengths"])
         self.mean_read_length = np.mean(df["lengths"])
         self.n50 = get_N50(np.sort(df["lengths"]))
@@ -197,6 +198,7 @@ def write_stats_legacy(stats, names, output, datadfs):
         "Number of reads": "number_of_reads",
         "Total bases": "number_of_bases",
         "Total bases aligned": "number_of_bases_aligned",
+        "Fraction of bases aligned": "fraction_bases_aligned",
         "Median read length": "median_read_length",
         "Mean read length": "mean_read_length",
         "Read length N50": "n50",
