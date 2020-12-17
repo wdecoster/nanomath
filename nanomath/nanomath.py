@@ -35,6 +35,7 @@ class Stats(object):
             self.fraction_bases_aligned = self.number_of_bases_aligned / self.number_of_bases
         self.median_read_length = np.median(df["lengths"])
         self.mean_read_length = np.mean(df["lengths"])
+        self.read_length_stdev = np.std(df["lengths"])
         self.n50 = get_N50(np.sort(df["lengths"]))
         if "percentIdentity" in df:
             self.average_identity = np.mean(df["percentIdentity"])
@@ -201,6 +202,7 @@ def write_stats_legacy(stats, names, output, datadfs):
         "Fraction of bases aligned": "fraction_bases_aligned",
         "Median read length": "median_read_length",
         "Mean read length": "mean_read_length",
+        "STDEV read length": "read_length_stdev",
         "Read length N50": "n50",
         "Average percent identity": "average_identity",
         "Median percent identity": "median_identity",
