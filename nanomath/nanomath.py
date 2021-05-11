@@ -53,6 +53,11 @@ class Stats(object):
                                          col="quals",
                                          values=["quals", "lengths"])
             self._reads_above_qual = [reads_above_qual(df, q) for q in self._qualgroups]
+        else:
+            self._top5_lengths = get_top_5(df=df,
+                                           col="lengths",
+                                           values=["lengths"],
+                                           fill='quals')
 
     def long_features_as_string(self):
         """formatting long features to a string to print for legacy stats output"""
@@ -95,12 +100,16 @@ class Stats(object):
 
     def unwind_long_features_top5(self, feature, name):
         """for tsv stats output"""
+        if feature not in self.__dict__:
+            return
         for entry, label in zip(self.__dict__[feature], range(1, 6)):
             self.__dict__[name + ':' + str(label)] = '{} ({})'.format(round(entry[0], ndigits=1),
                                                                       round(entry[1], ndigits=1))
 
     def unwind_long_features_above_qual(self, feature, name):
         """for tsv stats output"""
+        if feature not in self.__dict__:
+            return
         for entry, label in zip(self.__dict__[feature],
                                 ['>Q{}:'.format(q) for q in self._qualgroups]):
             numberAboveQ, megAboveQ = entry
@@ -148,13 +157,20 @@ def ave_qual(quals, qround=False, tab=errs_tab(128)):
         return None
 
 
-def get_top_5(df, col, values):
+def get_top_5(df, col, values, fill=False):
     if "readIDs" in df:
         values.append("readIDs")
-    return df.sort_values(col, ascending=False) \
-        .head(5)[values] \
-        .reset_index(drop=True) \
-        .itertuples(index=False, name=None)
+    if fill:
+        return df.sort_values(col, ascending=False) \
+            .head(5)[values] \
+            .assign(fill=[0]*5) \
+            .reset_index(drop=True) \
+            .itertuples(index=False, name=None)
+    else:
+        return df.sort_values(col, ascending=False) \
+            .head(5)[values] \
+            .reset_index(drop=True) \
+            .itertuples(index=False, name=None)
 
 
 def reads_above_qual(df, qual):
