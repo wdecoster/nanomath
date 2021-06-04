@@ -27,6 +27,11 @@ from math import log
 
 class Stats(object):
     def __init__(self, df):
+        if len(df) < 5:
+            sys.stderr.write("\n\nWARNING: less than 5 reads in the dataset!\n")
+            sys.stderr.write("WARNING: some stats might be unexpected or missing\n")
+            sys.stderr.write("WARNING: or a crash might happen, who knows\n")
+            sys.stderr.write("WARNING: this code is not intended for such small datasets\n\n\n")
         self.number_of_reads = len(df)
         self.number_of_bases = np.sum(df["lengths"])
         self._with_readIDs = "readIDs" in df
