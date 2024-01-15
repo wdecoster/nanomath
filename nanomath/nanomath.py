@@ -31,13 +31,17 @@ class Stats(object):
             sys.stderr.write("\n\nWARNING: less than 5 reads in the dataset!\n")
             sys.stderr.write("WARNING: some stats might be unexpected or missing\n")
             sys.stderr.write("WARNING: or a crash might happen, who knows\n")
-            sys.stderr.write("WARNING: this code is not intended for such small datasets\n\n\n")
+            sys.stderr.write(
+                "WARNING: this code is not intended for such small datasets\n\n\n"
+            )
         self.number_of_reads = len(df)
         self.number_of_bases = np.sum(df["lengths"])
         self._with_readIDs = "readIDs" in df
         if "aligned_lengths" in df:
             self.number_of_bases_aligned = np.sum(df["aligned_lengths"])
-            self.fraction_bases_aligned = self.number_of_bases_aligned / self.number_of_bases
+            self.fraction_bases_aligned = (
+                self.number_of_bases_aligned / self.number_of_bases
+            )
         self.median_read_length = np.median(df["lengths"])
         self.mean_read_length = np.mean(df["lengths"])
         self.read_length_stdev = np.std(df["lengths"])
@@ -48,31 +52,51 @@ class Stats(object):
         if "channelIDs" in df:
             self.active_channels = np.unique(df["channelIDs"]).size
         if "quals" in df:
-            self._qualgroups = [5, 7, 10, 12, 15]  # needs 5 elements in current implementation
+            self._qualgroups = [
+                10,
+                15,
+                20,
+                25,
+                30,
+            ]  # needs 5 elements in current implementation
             self.mean_qual = ave_qual(df["quals"].astype("int").to_list())
             self.median_qual = np.median(df["quals"])
-            self._top5_lengths = get_top_5(df=df, col="lengths", values=["lengths", "quals"])
-            self._top5_quals = get_top_5(df=df, col="quals", values=["quals", "lengths"])
+            self._top5_lengths = get_top_5(
+                df=df, col="lengths", values=["lengths", "quals"]
+            )
+            self._top5_quals = get_top_5(
+                df=df, col="quals", values=["quals", "lengths"]
+            )
             self._reads_above_qual = [reads_above_qual(df, q) for q in self._qualgroups]
         else:
-            self._top5_lengths = get_top_5(df=df, col="lengths", values=["lengths"], fill="quals")
+            self._top5_lengths = get_top_5(
+                df=df, col="lengths", values=["lengths"], fill="quals"
+            )
 
     def long_features_as_string(self):
         """formatting long features to a string to print for legacy stats output"""
         self.top5_lengths = self.long_feature_as_string_top5(self._top5_lengths)
         self.top5_quals = self.long_feature_as_string_top5(self._top5_quals)
-        self.reads_above_qual = self.long_feature_as_string_above_qual(self._reads_above_qual)
+        self.reads_above_qual = self.long_feature_as_string_above_qual(
+            self._reads_above_qual
+        )
 
     def long_feature_as_string_top5(self, field):
         """for legacy stats output"""
         if self._with_readIDs:
             return [
-                str(round(i, ndigits=1)) + " (" + str(round(j, ndigits=1)) + "; " + k + ")"
+                str(round(i, ndigits=1))
+                + " ("
+                + str(round(j, ndigits=1))
+                + "; "
+                + k
+                + ")"
                 for i, j, k in field
             ]
         else:
             return [
-                str(round(i, ndigits=1)) + " (" + str(round(j, ndigits=1)) + ")" for i, j in field
+                str(round(i, ndigits=1)) + " (" + str(round(j, ndigits=1)) + ")"
+                for i, j in field
             ]
 
     def long_feature_as_string_above_qual(self, field):
@@ -95,8 +119,12 @@ class Stats(object):
             if not key.startswith("_"):
                 if not isinstance(value, int):
                     statdict[key] = "{:.1f}".format(value)
-        self.unwind_long_features_top5(feature="_top5_lengths", name="longest_read_(with_Q)")
-        self.unwind_long_features_top5(feature="_top5_quals", name="highest_Q_read_(with_length)")
+        self.unwind_long_features_top5(
+            feature="_top5_lengths", name="longest_read_(with_Q)"
+        )
+        self.unwind_long_features_top5(
+            feature="_top5_quals", name="highest_Q_read_(with_length)"
+        )
         self.unwind_long_features_above_qual(feature="_reads_above_qual", name="Reads")
         return {k: v for k, v in statdict.items() if not k.startswith("_")}
 
@@ -128,7 +156,9 @@ def get_N50(readlengths):
 
     Based on https://github.com/PapenfussLab/Mungo/blob/master/bin/fasta_stats.py
     """
-    return readlengths[np.where(np.cumsum(readlengths) >= 0.5 * np.sum(readlengths))[0][0]]
+    return readlengths[
+        np.where(np.cumsum(readlengths) >= 0.5 * np.sum(readlengths))[0][0]
+    ]
 
 
 @deprecated
@@ -238,7 +268,8 @@ def write_stats_legacy(stats, names, output, datadfs):
     try:
         max_num = (
             max(
-                max([len(str(s.number_of_bases)) for s in stats]), max([len(str(n)) for n in names])
+                max([len(str(s.number_of_bases)) for s in stats]),
+                max([len(str(n)) for n in names]),
             )
             + 6
         )
@@ -246,14 +277,18 @@ def write_stats_legacy(stats, names, output, datadfs):
         max_num = max([len(str(s.number_of_bases)) for s in stats]) + 6
     output.write(
         "{:<{}}{}\n".format(
-            "General summary:", max_len, " ".join(["{:>{}}".format(n, max_num) for n in names])
+            "General summary:",
+            max_len,
+            " ".join(["{:>{}}".format(n, max_num) for n in names]),
         )
     )
     for f in sorted(features.keys()):
         try:
             output.write(
                 "{f:{pad}}{v}\n".format(
-                    f=f + ":", pad=max_len, v=feature_list(stats, features[f], padding=max_num)
+                    f=f + ":",
+                    pad=max_len,
+                    v=feature_list(stats, features[f], padding=max_num),
                 )
             )
         except KeyError:
@@ -281,18 +316,24 @@ def write_stats_legacy(stats, names, output, datadfs):
                 output.write(
                     "{}:\t{}\n".format(
                         long_features[lf][1][index],
-                        feature_list(stats=stats, feature=long_features[lf][0], index=index),
+                        feature_list(
+                            stats=stats, feature=long_features[lf][0], index=index
+                        ),
                     )
                 )
 
 
 def feature_list(stats, feature, index=None, padding=15):
     if index is None:
-        return " ".join(["{:>{},.1f}".format(s.__dict__[feature], padding) for s in stats])
+        return " ".join(
+            ["{:>{},.1f}".format(s.__dict__[feature], padding) for s in stats]
+        )
     else:
         return "\t".join(
             [
-                str(s.__dict__[feature][index]) if len(s.__dict__[feature]) > index else "NA"
+                str(s.__dict__[feature][index])
+                if len(s.__dict__[feature]) > index
+                else "NA"
                 for s in stats
             ]
         )
