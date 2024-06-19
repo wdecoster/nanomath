@@ -1,4 +1,7 @@
-# nanomath
+# nanomath - DEPRECATED
+
+AS OF 2024-06-20, THIS REPOSITORY IS DEPRECATED. ITS CODE IS INTEGRATED INTO NANOPLOT.
+
 
 This module provides a few simple math and statistics functions for other scripts processing Oxford Nanopore sequencing data
 
